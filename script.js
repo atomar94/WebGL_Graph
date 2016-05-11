@@ -1,9 +1,11 @@
 var canvas;
 var gl;
-var squareVerticesBuffer;
+var yAxisVerticesBuffer;
+var xAxisVerticesBuffer;
 var mvMatrix;
 var shaderProgram;
-var vertexPositionAttribute;
+var yAxisVertexPositionAttribute;
+var xAxisVertexPositionAttribute;
 var perspectiveMatrix;
 
 //
@@ -71,30 +73,48 @@ function initWebGL() {
 //
 function initBuffers() {
 
-  // Create a buffer for the square's vertices.
 
-  squareVerticesBuffer = gl.createBuffer();
+  // ------------------- draw Y axis --------------------------
+  // Create buffers for the axes vertices.
 
-  // Select the squareVerticesBuffer as the one to apply vertex
+  yAxisVerticesBuffer = gl.createBuffer();
+
+  // Select the yAxisVerticesBuffer as the one to apply vertex
   // operations to from here out.
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, yAxisVerticesBuffer);
 
   // Now create an array of vertices for the square. Note that the Z
   // coordinate is always 0 here.
 
-  var vertices = [
-    1.0,  1.0,  0.0,
-    -1.0, 1.0,  0.0,
-    1.0,  -1.0, 0.0,
-    -1.0, -1.0, 0.0
+  var y_axis_vertices = [
+    -2.98,  2.0,  0.0,
+    -3.0, 2.0,  0.0,
+    -2.98, -2.1, 0.0,
+    -3.0, -2.1, 0.0
   ];
 
   // Now pass the list of vertices into WebGL to build the shape. We
   // do this by creating a Float32Array from the JavaScript array,
   // then use it to fill the current vertex buffer.
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(y_axis_vertices), gl.STATIC_DRAW);
+
+  //----------------------- draw X axis -----------------------
+
+  xAxisVerticesBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxisVerticesBuffer);
+
+  var x_axis_vertices = [
+    3,  -1.98,  0.0,
+    3, -2.0,  0.0,
+    -3.1, -2.0, 0.0,
+    -3.1, -1.98, 0.0
+  ];
+
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
+
 }
 
 //
@@ -124,13 +144,21 @@ function drawScene() {
 
   mvTranslate([-0.0, 0.0, -6.0]);
 
-  // Draw the square by binding the array buffer to the square's vertices
+  // Draw the y axis by binding the array buffer to the square's vertices
   // array, setting attributes, and pushing it to GL.
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesBuffer);
-  gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, yAxisVerticesBuffer);
+  gl.vertexAttribPointer(yAxisVertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxisVerticesBuffer);
+  gl.vertexAttribPointer(xAxisVertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+  setMatrixUniforms();
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+
 }
 
 //
