@@ -6,14 +6,20 @@ var mvMatrix;
 var shaderProgram;
 var yAxisVertexPositionAttribute;
 var xAxisVertexPositionAttribute;
+var movingPointPositionAttribute;
 var perspectiveMatrix;
 
-//
-// start
-//
-// Called when the canvas is created to get the ball rolling.
-// Figuratively, that is. There's nothing moving in this demo.
-//
+var displayQueue = []; //holds the points we want to display and the timestamp
+
+
+//returns DataPoint object that stores value and timestamp
+function DataPoint() {
+  self.timestamp;
+  self.value; //data value
+  self.buffer; //gl buffer
+}
+
+
 function start() {
   canvas = document.getElementById("glcanvas");
 
@@ -67,12 +73,35 @@ function initWebGL() {
 
 //
 // initBuffers
-//
-// Initialize the buffers we'll need. For this demo, we just have
-// one object -- a simple two-dimensional square.
-//
 function initBuffers() {
 
+  initAxisBuffers();
+
+
+}
+
+//push data point to front of display queue
+function push(value) {
+  displayQueue.push(DataPoint());
+  //displayQueue[displayQueue.length - 1].timestamp = ;
+  initDataBuffers(displayQueue[displayQueue.length - 1]);
+}
+
+
+//a small square
+var PointVertices = [
+    0.0, 0.1, 0,
+    0.1, 0.1, 0,
+    0.1, 0.0, 0,
+    0, 0, 0];
+
+function initDataBuffers(mDataPoint) {
+  mDataPoint.buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, mDataPoint.buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(PointVertices), gl.STATIC_DRAW);
+}
+
+function initAxisBuffers() {
 
   // ------------------- draw Y axis --------------------------
   // Create buffers for the axes vertices.
@@ -115,8 +144,22 @@ function initBuffers() {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
 
-}
+  movingVerticesBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxisVerticesBuffer);
 
+  var x_axis_vertices = [
+    3,  -1.98,  0.0,
+    3, -2.0,  0.0,
+    -3.1, -2.0, 0.0,
+    -3.1, -1.98, 0.0
+  ];
+
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
+
+
+
+}
 //
 // drawScene
 //
