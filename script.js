@@ -28,6 +28,8 @@ function Axis() {
   self.vertexAttribPointer = null;
   self.maxWindowPos = 0;
   self.minWindowPos = 0;
+  self.maxValue = 0;
+  self.minValue = 0;
 }
 
 
@@ -87,7 +89,7 @@ function initWebGL() {
 function initBuffers() {
 
   initAxisBuffers();
-  pushData(4);
+  pushData(5);
 
 }
 //push data point to front of display queue
@@ -116,6 +118,11 @@ function initDataBuffers(mDataPoint) {
 function initAxisBuffers() {
 
   yAxis = new Axis();
+  yAxis.minWindowPos = -2;
+  yAxis.maxWindowPos = 2;
+
+  yAxis.minValue = 0;
+  yAxis.maxValue = 10;
   yAxis.buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.buffer);
 
@@ -131,6 +138,8 @@ function initAxisBuffers() {
   //----------------------- draw X axis -----------------------
 
   xAxis = new Axis();
+  xAxis.minWindowPos = -3;
+  xAxis.maxWindowPos = 3;
   xAxis.buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.buffer);
 
@@ -166,7 +175,7 @@ function drawScene() {
   // Now move the drawing position a bit to where we want to start
   // drawing the square.
 
-  mvTranslate([-0.0, 0.0, -6.0]);
+  mvTranslate([0.0, 0.0, -6.0]);
 
   // Draw the y axis by binding the array buffer to the square's vertices
   // array, setting attributes, and pushing it to GL.
@@ -182,12 +191,22 @@ function drawScene() {
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+  //set starting location to be the furthest right point on the x axis
+  mvTranslate([xAxis.maxWindowPos, yAxis.minWindowPos, 0.0]);
   for(var displayQueuePos = 0; displayQueuePos < displayQueue.length; displayQueuePos++) {
     var for_debugging = displayQueue[displayQueuePos];
+
+    //move drawing position to scaled position
+    //TODO: This equation needs to be modified for when yAxis.minValue is not 0
+    var dataYTranslate = displayQueue[displayQueuePos].value / (yAxis.maxValue - yAxis.minValue) * (yAxis.maxWindowPos - yAxis.minWindowPos);
+    mvTranslate([0, dataYTranslate, 0]);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[displayQueuePos].buffer);
     gl.vertexAttribPointer(displayQueue[displayQueuePos].vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    //reset draw position
+    mvTranslate(0, -dataYTranslate, 0);
   }
 }
 
