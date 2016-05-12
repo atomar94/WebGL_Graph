@@ -1,13 +1,13 @@
 var canvas;
 var gl;
-var yAxisVerticesBuffer;
-var xAxisVerticesBuffer;
+
+var yAxis;
+var xAxis;
 var mvMatrix;
 var shaderProgram;
-var yAxisVertexPositionAttribute;
-var xAxisVertexPositionAttribute;
-var movingPointPositionAttribute;
 var perspectiveMatrix;
+
+
 
 var displayQueue = []; //holds the points we want to display and the timestamp
 
@@ -18,6 +18,16 @@ function DataPoint() {
   self.value = null; //data value
   self.buffer = null; //gl buffer
   self.vertexAttribPointer = undefined; //gl vertexAttrPtr
+  self.xpos = null;
+  self.ypos = null;
+  self.zpos = null;
+}
+
+function Axis() {
+  self.buffer = null;
+  self.vertexAttribPointer = null;
+  self.maxWindowPos = 0;
+  self.minWindowPos = 0;
 }
 
 
@@ -86,7 +96,6 @@ function pushData(value) {
   newDataPoint.value = value;
   newDataPoint.timestamp = 4;
   displayQueue.push(newDataPoint);
-  //displayQueue[displayQueue.length - 1].timestamp = ;
   initDataBuffers(newDataPoint);
 }
 
@@ -106,18 +115,9 @@ function initDataBuffers(mDataPoint) {
 
 function initAxisBuffers() {
 
-  // ------------------- draw Y axis --------------------------
-  // Create buffers for the axes vertices.
-
-  yAxisVerticesBuffer = gl.createBuffer();
-
-  // Select the yAxisVerticesBuffer as the one to apply vertex
-  // operations to from here out.
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, yAxisVerticesBuffer);
-
-  // Now create an array of vertices for the square. Note that the Z
-  // coordinate is always 0 here.
+  yAxis = new Axis();
+  yAxis.buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.buffer);
 
   var y_axis_vertices = [
     -2.98,  2.0,  0.0,
@@ -126,16 +126,13 @@ function initAxisBuffers() {
     -3.0, -2.1, 0.0
   ];
 
-  // Now pass the list of vertices into WebGL to build the shape. We
-  // do this by creating a Float32Array from the JavaScript array,
-  // then use it to fill the current vertex buffer.
-
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(y_axis_vertices), gl.STATIC_DRAW);
 
   //----------------------- draw X axis -----------------------
 
-  xAxisVerticesBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, xAxisVerticesBuffer);
+  xAxis = new Axis();
+  xAxis.buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.buffer);
 
   var x_axis_vertices = [
     3,  -1.98,  0.0,
@@ -146,28 +143,9 @@ function initAxisBuffers() {
 
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
-
-  movingVerticesBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, xAxisVerticesBuffer);
-
-  var x_axis_vertices = [
-    3,  -1.98,  0.0,
-    3, -2.0,  0.0,
-    -3.1, -2.0, 0.0,
-    -3.1, -1.98, 0.0
-  ];
-
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
-
-
 
 }
-//
-// drawScene
-//
-// Draw the scene.
-//
+
 function drawScene() {
   // Clear the canvas before we start drawing on it.
 
@@ -194,13 +172,13 @@ function drawScene() {
   // array, setting attributes, and pushing it to GL.
 
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, yAxisVerticesBuffer);
-  gl.vertexAttribPointer(yAxisVertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.buffer);
+  gl.vertexAttribPointer(yAxis.vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, xAxisVerticesBuffer);
-  gl.vertexAttribPointer(xAxisVertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.buffer);
+  gl.vertexAttribPointer(xAxis.vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
