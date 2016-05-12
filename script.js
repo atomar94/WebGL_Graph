@@ -14,9 +14,10 @@ var displayQueue = []; //holds the points we want to display and the timestamp
 
 //returns DataPoint object that stores value and timestamp
 function DataPoint() {
-  self.timestamp;
-  self.value; //data value
-  self.buffer; //gl buffer
+  self.timestamp = null;
+  self.value = null; //data value
+  self.buffer = null; //gl buffer
+  self.vertexAttribPointer = undefined; //gl vertexAttrPtr
 }
 
 
@@ -76,28 +77,30 @@ function initWebGL() {
 function initBuffers() {
 
   initAxisBuffers();
-
+  pushData(4);
 
 }
-
 //push data point to front of display queue
-function push(value) {
-  displayQueue.push(DataPoint());
+function pushData(value) {
+  var newDataPoint = new DataPoint();
+  newDataPoint.value = value;
+  newDataPoint.timestamp = 4;
+  displayQueue.push(newDataPoint);
   //displayQueue[displayQueue.length - 1].timestamp = ;
-  initDataBuffers(displayQueue[displayQueue.length - 1]);
+  initDataBuffers(newDataPoint);
 }
 
 
 //a small square
 var PointVertices = [
-    0.0, 0.1, 0,
-    0.1, 0.1, 0,
-    0.1, 0.0, 0,
-    0, 0, 0];
+    0.0, 0.03, 0,
+    0.03, 0.03, 0,
+    0.0, 0.0, 0,
+    0.03, 0, 0];
 
 function initDataBuffers(mDataPoint) {
-  mDataPoint.buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, mDataPoint.buffer);
+  displayQueue[displayQueue.length - 1].buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[displayQueue.length - 1].buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(PointVertices), gl.STATIC_DRAW);
 }
 
@@ -201,7 +204,13 @@ function drawScene() {
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-
+  for(var displayQueuePos = 0; displayQueuePos < displayQueue.length; displayQueuePos++) {
+    var for_debugging = displayQueue[displayQueuePos];
+    gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[displayQueuePos].buffer);
+    gl.vertexAttribPointer(displayQueue[displayQueuePos].vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
+    setMatrixUniforms();
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
 }
 
 //
