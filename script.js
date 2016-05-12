@@ -89,7 +89,8 @@ function initWebGL() {
 function initBuffers() {
 
   initAxisBuffers();
-  pushData(5);
+  pushData(2);
+  pushData(1);
 
 }
 //push data point to front of display queue
@@ -200,13 +201,14 @@ function drawScene() {
     //TODO: This equation needs to be modified for when yAxis.minValue is not 0
     var dataYTranslate = displayQueue[displayQueuePos].value / (yAxis.maxValue - yAxis.minValue) * (yAxis.maxWindowPos - yAxis.minWindowPos);
     mvTranslate([0, dataYTranslate, 0]);
+    //mvTranslate([0, 1, 0]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[displayQueuePos].buffer);
     gl.vertexAttribPointer(displayQueue[displayQueuePos].vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     //reset draw position
-    mvTranslate(0, -dataYTranslate, 0);
+    mvTranslate([0, -dataYTranslate, 0]);
   }
 }
 
