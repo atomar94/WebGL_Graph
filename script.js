@@ -7,9 +7,7 @@ var mvMatrix;
 var shaderProgram;
 var perspectiveMatrix;
 
-
-
-var displayQueue = []; //holds the points we want to display and the timestamp
+var displayQueue = new Array(); //holds the points we want to display and the timestamp
 
 
 //returns DataPoint object that stores value and timestamp
@@ -24,12 +22,13 @@ function DataPoint() {
 }
 
 function Axis() {
-  self.buffer = null;
-  self.vertexAttribPointer = null;
-  self.maxWindowPos = 0;
-  self.minWindowPos = 0;
+  self.gl_buffer = null;
+  self.gl_vertexAttribPointer = null;
+  self.gl_line_start = 0;
+  self.gl_line_length = 0;
   self.maxValue = 0;
   self.minValue = 0;
+  self.range = 0;
 }
 
 
@@ -67,7 +66,7 @@ function start() {
 //
 // Initialize WebGL, returning the GL context or null if
 // WebGL isn't available or could not be initialized.
-//
+//maxGLWindowPos
 function initWebGL() {
   gl = null;
 
@@ -97,7 +96,7 @@ function initBuffers() {
 function pushData(value) {
   var newDataPoint = new DataPoint();
   newDataPoint.value = value;
-  newDataPoint.timestamp = 4;
+  newDataPoint.timestamp = Date.now(); //ms
   displayQueue.push(newDataPoint);
   initDataBuffers(newDataPoint);
 }
@@ -119,13 +118,15 @@ function initDataBuffers(mDataPoint) {
 function initAxisBuffers() {
 
   yAxis = new Axis();
-  yAxis.minWindowPos = -2;
-  yAxis.maxWindowPos = 2;
+  yAxis.gl_line_length = -2;
+  yAxis.gl_line_start = 2;
 
   yAxis.minValue = 0;
   yAxis.maxValue = 10;
-  yAxis.buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.buffer);
+  yAxis.range = yAxis.maxValue - yAxis.minValue;
+
+  yAxis.gl_buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.gl_buffer);
 
   var y_axis_vertices = [
     -2.98,  2.0,  0.0,
@@ -139,18 +140,21 @@ function initAxisBuffers() {
   //----------------------- draw X axis -----------------------
 
   xAxis = new Axis();
-  xAxis.minWindowPos = -3;
-  xAxis.maxWindowPos = 3;
-  xAxis.buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.buffer);
+  xAxis.gl_line_length = 6;
+  xAxis.gl_line_start = 3;
+
+  xAxis.minValue = 0;
+  xAxis.maxValue = 60000; //ms
+  xAxis.range = xAxis.maxValue - xAxis.minValue;
+  xAxis.gl_buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.gl_buffer);
 
   var x_axis_vertices = [
-    3,  -1.98,  0.0,
-    3, -2.0,  0.0,
-    -3.1, -2.0, 0.0,
-    -3.1, -1.98, 0.0
+    xAxis.gl_line_start,  -1.98,  0.0,
+    xAxis.gl_line_start, -2.0,  0.0,
+    xAxis.gl_line_start-xAxis.gl_line_length - 0.2, -2.0, 0.0,
+    xAxis.gl_line_start-xAxis.gl_line_length - 0.2, -1.98, 0.0
   ];
-
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
 
@@ -182,33 +186,44 @@ function drawScene() {
   // array, setting attributes, and pushing it to GL.
 
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.buffer);
-  gl.vertexAttribPointer(yAxis.vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.gl_buffer);
+  gl.vertexAttribPointer(yAxis.gl_vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.buffer);
-  gl.vertexAttribPointer(xAxis.vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.gl_buffer);
+  gl.vertexAttribPointer(xAxis.gl_vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
   //set starting location to be the furthest right point on the x axis
-  mvTranslate([xAxis.maxWindowPos, yAxis.minWindowPos, 0.0]);
-  for(var displayQueuePos = 0; displayQueuePos < displayQueue.length; displayQueuePos++) {
-    var for_debugging = displayQueue[displayQueuePos];
+  mvTranslate([xAxis.gl_line_start, yAxis.gl_line_length, 0.0]);
+  for(var pos = 0; pos < displayQueue.length; pos++) {
+    var for_debugging = displayQueue[pos];
 
     //move drawing position to scaled position
     //TODO: This equation needs to be modified for when yAxis.minValue is not 0
-    var dataYTranslate = displayQueue[displayQueuePos].value / (yAxis.maxValue - yAxis.minValue) * (yAxis.maxWindowPos - yAxis.minWindowPos);
-    mvTranslate([0, dataYTranslate, 0]);
-    //mvTranslate([0, 1, 0]);
+    var dataYTranslate = displayQueue[pos].value / (yAxis.maxValue - yAxis.minValue) * (yAxis.gl_line_start - yAxis.gl_line_length);
+    
+    xAxis.maxValue = Date.now(); //time elapsed since the start of the test
+    xAxis.minValue = xAxis.maxValue - xAxis.range;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[displayQueuePos].buffer);
-    gl.vertexAttribPointer(displayQueue[displayQueuePos].vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
+    if(displayQueue[pos].timestamp < xAxis.minValue) {
+        displayQueue.shift();
+        pos--;
+        continue;
+    }
+
+    var xAxisShift_ratio = (xAxis.maxValue - displayQueue[pos].timestamp) / xAxis.range;
+    var xAxisShift_total = xAxis.gl_line_start - xAxisShift_ratio * xAxis.gl_line_length;
+    mvTranslate([-xAxisShift_total, dataYTranslate, 0]);
+    //mvTranslate([0, dataYTranslate, 0]);
+    gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[pos].buffer);
+    gl.vertexAttribPointer(displayQueue[pos].vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     //reset draw position
-    mvTranslate([0, -dataYTranslate, 0]);
+    mvTranslate([xAxisShift_total, -dataYTranslate, 0]);
   }
 }
 
