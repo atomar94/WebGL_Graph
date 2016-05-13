@@ -58,6 +58,7 @@ function start() {
     // Set up to draw the scene periodically.
 
     setInterval(drawScene, 15);
+    setInterval(pushData, 30, 4);
   }
 }
 
@@ -144,7 +145,7 @@ function initAxisBuffers() {
   xAxis.gl_line_start = 3;
 
   xAxis.minValue = 0;
-  xAxis.maxValue = 60000; //ms
+  xAxis.maxValue = 20000; //ms
   xAxis.range = xAxis.maxValue - xAxis.minValue;
   xAxis.gl_buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.gl_buffer);
@@ -214,16 +215,16 @@ function drawScene() {
         continue;
     }
 
-    var xAxisShift_ratio = (xAxis.maxValue - displayQueue[pos].timestamp) / xAxis.range;
-    var xAxisShift_total = xAxis.gl_line_start - xAxisShift_ratio * xAxis.gl_line_length;
-    mvTranslate([-xAxisShift_total, dataYTranslate, 0]);
-    //mvTranslate([0, dataYTranslate, 0]);
+    var dataXTranslate = ((xAxis.maxValue - displayQueue[pos].timestamp) / xAxis.range) * xAxis.gl_line_length;
+    mvTranslate([-dataXTranslate, dataYTranslate, 0]);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, displayQueue[pos].buffer);
     gl.vertexAttribPointer(displayQueue[pos].vertexAttribPointer, 3, gl.FLOAT, false, 0, 0);
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
     //reset draw position
-    mvTranslate([xAxisShift_total, -dataYTranslate, 0]);
+    mvTranslate([dataXTranslate, -dataYTranslate, 0]);
   }
 }
 
