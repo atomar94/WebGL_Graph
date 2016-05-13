@@ -9,7 +9,6 @@ var perspectiveMatrix;
 
 var displayQueue = new Array(); //holds the points we want to display and the timestamp
 
-
 //returns DataPoint object that stores value and timestamp
 function DataPoint() {
   self.timestamp = null;
@@ -31,6 +30,22 @@ function Axis() {
   self.range = 0;
 }
 
+//call this to change the range of time to display
+//on the x axis
+function setXRange(val) {
+  xAxis.range = val;
+  xAxis.minValue = xAxis.maxValue - val;
+}
+
+function setYMin(val) {
+  yAxis.minValue = val;
+  yAxis.range = yAxis.maxValue - yAxis.minValue;
+}
+
+function setYMax(val) {
+  yAxis.maxValue = val;
+  yAxis.range = yAxis.maxValue - yAxis.minValue;
+}
 
 function start() {
   canvas = document.getElementById("glcanvas");
@@ -58,6 +73,7 @@ function start() {
     // Set up to draw the scene periodically.
 
     setInterval(drawScene, 15);
+    setInterval(pushData, 15, 4);
   }
 }
 
@@ -85,6 +101,7 @@ function initWebGL() {
 
 //push data point to front of display queue
 function pushData(value) {
+  value = Math.sin(Date.now() / 300) + 5;
   var newDataPoint = new DataPoint();
   newDataPoint.value = value;
   newDataPoint.timestamp = Date.now(); //ms
@@ -120,9 +137,9 @@ function initAxisBuffers() {
   gl.bindBuffer(gl.ARRAY_BUFFER, yAxis.gl_buffer);
 
   var y_axis_vertices = [
-    -2.98,  2.0,  0.0,
+    -2.99,  2.0,  0.0,
     -3.0, 2.0,  0.0,
-    -2.98, -2.1, 0.0,
+    -2.99, -2.1, 0.0,
     -3.0, -2.1, 0.0
   ];
 
@@ -141,10 +158,10 @@ function initAxisBuffers() {
   gl.bindBuffer(gl.ARRAY_BUFFER, xAxis.gl_buffer);
 
   var x_axis_vertices = [
-    xAxis.gl_line_start,  -1.98,  0.0,
-    xAxis.gl_line_start, -2.0,  0.0,
-    xAxis.gl_line_start-xAxis.gl_line_length - 0.2, -2.0, 0.0,
-    xAxis.gl_line_start-xAxis.gl_line_length - 0.2, -1.98, 0.0
+    xAxis.gl_line_start,  -2,  0.0,
+    xAxis.gl_line_start, -2.01,  0.0,
+    xAxis.gl_line_start-xAxis.gl_line_length - 0.2, -2, 0.0,
+    xAxis.gl_line_start-xAxis.gl_line_length - 0.2, -2.01, 0.0
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(x_axis_vertices), gl.STATIC_DRAW);
