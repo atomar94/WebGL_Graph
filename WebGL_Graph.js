@@ -53,12 +53,11 @@ function start() {
     // Here's where we call the routine that builds all the objects
     // we'll be drawing.
 
-    initBuffers();
+      initAxisBuffers();
 
     // Set up to draw the scene periodically.
 
     setInterval(drawScene, 15);
-    setInterval(pushData, 30, 4);
   }
 }
 
@@ -84,15 +83,6 @@ function initWebGL() {
   }
 }
 
-//
-// initBuffers
-function initBuffers() {
-
-  initAxisBuffers();
-  pushData(2);
-  pushData(1);
-
-}
 //push data point to front of display queue
 function pushData(value) {
   var newDataPoint = new DataPoint();
