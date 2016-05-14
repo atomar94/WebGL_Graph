@@ -47,8 +47,8 @@ function setYMax(val) {
   yAxis.range = yAxis.maxValue - yAxis.minValue;
 }
 
-function start() {
-  canvas = document.getElementById("glcanvas");
+function startThrust() {
+  canvas = document.getElementById("glthrustcanvas");
 
   initWebGL(canvas);      // Initialize the GL context
 
