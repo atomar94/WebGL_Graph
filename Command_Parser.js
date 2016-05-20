@@ -10,4 +10,22 @@ function Init_Command_Parser() {
 //init all plots. currently just thrust is implemented
 function Init_Plots() {
 	startThrust();
+	Poll_Requests();
+}
+
+function command_handler(data) {
+	var hi = "hi";
+}
+
+function request(params) {
+	self.parameters = params;
+}
+
+function Poll_Requests() {
+	mrequest = request("THRUST");
+
+	$.get("/display", "id=1", function(data) {
+					command_handler(data);
+				});
+	
 }
