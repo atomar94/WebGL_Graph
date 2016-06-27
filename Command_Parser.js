@@ -24,7 +24,7 @@ function request(params) {
 function Poll_Requests() {
 	mrequest = request("THRUST");
 
-	$.get("/display.abcd", "id=1", function(data) {
+	$.get("/display", "", function(data) {
 					command_handler(data);
 				});
 	

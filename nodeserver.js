@@ -26,8 +26,8 @@ http.createServer( function(req, res) {
     ".gif": "image/gif",
     ".png": "image/png"
   };
-  var isValidExt = validExtensions[ext];
 
+  var isValidExt = validExtensions[ext];
   if (isValidExt) {
     
     localPath += filename;
@@ -41,6 +41,17 @@ http.createServer( function(req, res) {
         res.end();
       }
     });
+
+  } else if (req.url == "/display") {
+      console.log("Display handler called");
+      res.writeHead(200, {"Content-Type": "application/json"});
+      var otherArray = ["item1", "item2"];
+      var otherObject = { thrust: "3"};
+      var json = JSON.stringify({  
+      displayData: otherObject
+  });
+  res.end(json);
+
 
   } else {
     console.log("Invalid file extension detected: " + ext)
