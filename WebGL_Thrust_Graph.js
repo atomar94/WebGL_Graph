@@ -73,7 +73,7 @@ function startThrust() {
     // Set up to draw the scene periodically.
 
     setInterval(drawScene, 15);
-    setInterval(pushData, 15, 4);
+    setInterval(pushData, 15, null); //pass null so the value wont update
   }
 }
 
@@ -100,13 +100,24 @@ function initWebGL() {
 }
 
 //push data point to front of display queue
+//if value=null push the previous value
+var datapointvalue = 0;
 function pushData(value) {
-  value = Math.sin(Date.now() / 300) + 5;
+  if( value != null) {
+    datapointvalue = value;
+  }
+
   var newDataPoint = new DataPoint();
-  newDataPoint.value = value;
+  newDataPoint.value = datapointvalue;
   newDataPoint.timestamp = Date.now(); //ms
+  console.log(typeof(newDataPoint));
   displayQueue.push(newDataPoint);
   initDataBuffers(newDataPoint);
+
+
+  //console.log(typeof(datapoint))
+  //displayQueue.push(datapoint);
+  //initDataBuffers(datapoint);
 }
 
 

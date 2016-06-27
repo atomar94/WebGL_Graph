@@ -14,7 +14,8 @@ function Init_Plots() {
 }
 
 function command_handler(data) {
-	var hi = "hi";
+	var datapoint = parseFloat(data.displayData.thrust);
+	pushData(datapoint);
 }
 
 function request(params) {

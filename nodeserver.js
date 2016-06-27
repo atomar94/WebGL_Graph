@@ -45,8 +45,10 @@ http.createServer( function(req, res) {
   } else if (req.url == "/display") {
       console.log("Display handler called");
       res.writeHead(200, {"Content-Type": "application/json"});
-      var otherArray = ["item1", "item2"];
-      var otherObject = { thrust: "3"};
+
+      //Hi Robert <3 <3
+      var otherObject = { thrust: "0.1"};
+
       var json = JSON.stringify({  
       displayData: otherObject
   });
